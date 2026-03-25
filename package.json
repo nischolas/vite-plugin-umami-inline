@@ -1,6 +1,6 @@
 {
   "name": "@nischolas/vite-plugin-umami-inline",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "Vite plugin that fetches and inlines the Umami analytics script at build time to bypass adblockers.",
   "type": "module",
   "author": "Nicholas Mathieu",
