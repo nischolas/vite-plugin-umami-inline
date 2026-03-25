@@ -50,6 +50,21 @@ The plugin only runs during `vite build`. Development builds are unaffected.
 | `enabled`      | `boolean \| (env) => boolean` | `true`                               | Set to `false` or return `false` from a function to skip injection entirely. The function receives `process.env`. |
 | `verbose`      | `boolean`                     | `false`                              | Log fetch size and duration to the console during build.                                                          |
 
+## Tracking events programmatically
+
+The package exports `track` and `identify` wrapper functions that delegate to `window.umami`. They are SSR-safe — they no-op silently if `window` or `window.umami` is not available.
+
+```ts
+import { track, identify } from "@nischolas/vite-plugin-umami-inline";
+
+// https://docs.umami.is/docs/tracker-functions
+
+track("signup");
+identify("user-123");
+```
+
+The `window.umami` type is also globally augmented, so `window.umami?.track(...)` is fully typed without any extra imports.
+
 ## Behavior on failure
 
 If all fetch attempts fail and no `fallbackPath` is provided, the build continues without injecting the script. An error is logged to the console. Analytics is treated as non-critical — it will never break your build.

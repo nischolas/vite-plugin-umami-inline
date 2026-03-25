@@ -1,6 +1,53 @@
 import fs from "node:fs/promises";
 import type { Plugin } from "vite";
 
+export interface UmamiTracker {
+  track(): void;
+  track(payload: object): void;
+  track(eventName: string): void;
+  track(eventName: string, data: object): void;
+  identify(uniqueId: string): void;
+  identify(uniqueId: string, data: object): void;
+  identify(data: object): void;
+}
+
+declare global {
+  interface Window {
+    umami?: UmamiTracker;
+  }
+}
+
+export function track(): void;
+export function track(payload: object): void;
+export function track(eventName: string): void;
+export function track(eventName: string, data: object): void;
+export function track(eventNameOrPayload?: string | object, data?: object): void {
+  if (typeof window === "undefined" || !window.umami) return;
+  if (typeof eventNameOrPayload === "string" && data !== undefined) {
+    window.umami.track(eventNameOrPayload, data);
+  } else if (typeof eventNameOrPayload === "string") {
+    window.umami.track(eventNameOrPayload);
+  } else if (eventNameOrPayload !== undefined) {
+    window.umami.track(eventNameOrPayload);
+  } else {
+    window.umami.track();
+  }
+}
+
+export function identify(uniqueId: string): void;
+export function identify(uniqueId: string, data: object): void;
+export function identify(data: object): void;
+export function identify(idOrData?: string | object, data?: object): void {
+  if (typeof window === "undefined" || !window.umami) return;
+  if (typeof idOrData === "string" && data !== undefined) {
+    window.umami.identify(idOrData, data);
+  } else if (typeof idOrData === "string") {
+    window.umami.identify(idOrData);
+  } else if (idOrData !== undefined) {
+    window.umami.identify(idOrData);
+  }
+}
+
 export interface VitePluginUmamiOptions {
   scriptUrl?: string;
   websiteId: string;

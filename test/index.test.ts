@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { vitePluginUmami } from "../src/index.js";
+import { vitePluginUmami, track, identify } from "../src/index.js";
 import type { Plugin } from "vite";
 
 vi.mock("node:fs/promises", () => ({
@@ -171,6 +171,87 @@ describe("fallback", () => {
         expect(result).toEqual([]);
         spy.mockRestore();
     });
+});
+
+describe("track", () => {
+  it("no-ops when window is undefined", () => {
+    // Node environment: window is not defined by default
+    expect(() => track()).not.toThrow();
+  });
+
+  it("no-ops when window.umami is undefined", () => {
+    vi.stubGlobal("window", {});
+    expect(() => track("event")).not.toThrow();
+    vi.unstubAllGlobals();
+  });
+
+  it("calls umami.track() with no args", () => {
+    const mockTrack = vi.fn();
+    vi.stubGlobal("window", { umami: { track: mockTrack } });
+    track();
+    expect(mockTrack).toHaveBeenCalledWith();
+    vi.unstubAllGlobals();
+  });
+
+  it("calls umami.track(eventName)", () => {
+    const mockTrack = vi.fn();
+    vi.stubGlobal("window", { umami: { track: mockTrack } });
+    track("signup");
+    expect(mockTrack).toHaveBeenCalledWith("signup");
+    vi.unstubAllGlobals();
+  });
+
+  it("calls umami.track(payload: object)", () => {
+    const mockTrack = vi.fn();
+    vi.stubGlobal("window", { umami: { track: mockTrack } });
+    track({ url: "/home" });
+    expect(mockTrack).toHaveBeenCalledWith({ url: "/home" });
+    vi.unstubAllGlobals();
+  });
+
+  it("calls umami.track(eventName, data)", () => {
+    const mockTrack = vi.fn();
+    vi.stubGlobal("window", { umami: { track: mockTrack } });
+    track("purchase", { plan: "pro" });
+    expect(mockTrack).toHaveBeenCalledWith("purchase", { plan: "pro" });
+    vi.unstubAllGlobals();
+  });
+});
+
+describe("identify", () => {
+  it("no-ops when window is undefined", () => {
+    expect(() => identify("user-1")).not.toThrow();
+  });
+
+  it("no-ops when window.umami is undefined", () => {
+    vi.stubGlobal("window", {});
+    expect(() => identify("user-1")).not.toThrow();
+    vi.unstubAllGlobals();
+  });
+
+  it("calls umami.identify(uniqueId)", () => {
+    const mockIdentify = vi.fn();
+    vi.stubGlobal("window", { umami: { identify: mockIdentify } });
+    identify("user-123");
+    expect(mockIdentify).toHaveBeenCalledWith("user-123");
+    vi.unstubAllGlobals();
+  });
+
+  it("calls umami.identify(uniqueId, data)", () => {
+    const mockIdentify = vi.fn();
+    vi.stubGlobal("window", { umami: { identify: mockIdentify } });
+    identify("user-123", { plan: "pro" });
+    expect(mockIdentify).toHaveBeenCalledWith("user-123", { plan: "pro" });
+    vi.unstubAllGlobals();
+  });
+
+  it("calls umami.identify(data: object)", () => {
+    const mockIdentify = vi.fn();
+    vi.stubGlobal("window", { umami: { identify: mockIdentify } });
+    identify({ plan: "pro" });
+    expect(mockIdentify).toHaveBeenCalledWith({ plan: "pro" });
+    vi.unstubAllGlobals();
+  });
 });
 
 describe("error conditions", () => {
