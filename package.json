@@ -23,10 +23,15 @@
     "@types/node": "^22",
     "vite": "^7",
     "tsup": "^8",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^2"
   },
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts",
-    "dev": "tsup src/index.ts --format esm,cjs --dts --watch"
+    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "test": "vitest run"
+  },
+  "vitest": {
+    "environment": "node"
   }
 }
