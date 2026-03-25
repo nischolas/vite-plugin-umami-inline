@@ -20,10 +20,19 @@ import { vitePluginUmami } from "@nischolas/vite-plugin-umami-inline";
 export default defineConfig({
   plugins: [
     vitePluginUmami({
-      hostUrl: "https://your-umami-instance.com",
       websiteId: "your-website-id",
+      scriptUrl: "https://cloud.umami.is/script.js", // default and optional if you're using Umami Cloud
     }),
   ],
+});
+```
+
+For a self-hosted instance or a renamed script:
+
+```ts
+vitePluginUmami({
+  websiteId: "your-website-id",
+  scriptUrl: "https://your-umami-instance.com/tracker.js",
 });
 ```
 
@@ -31,16 +40,15 @@ The plugin only runs during `vite build`. Development builds are unaffected.
 
 ## Options
 
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `hostUrl` | `string` | required | Base URL of your Umami instance. Must use HTTPS. |
-| `websiteId` | `string` | required | Umami website ID. |
-| `scriptName` | `string` | `"script.js"` | Filename to fetch from `hostUrl`. |
-| `fallbackPath` | `string` | — | Path to a local `.js` file used if the fetch fails. |
-| `fetchTimeout` | `number` | `5000` | Milliseconds before the fetch is aborted. |
-| `retries` | `number` | `1` | Number of retry attempts after the initial failure. |
-| `enabled` | `boolean \| (env) => boolean` | `true` | Set to `false` or return `false` from a function to skip injection entirely. The function receives `process.env`. |
-| `verbose` | `boolean` | `false` | Log fetch size and duration to the console during build. |
+| Option         | Type                          | Default                              | Description                                                                                                       |
+| -------------- | ----------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| `websiteId`    | `string`                      | required                             | Umami website ID.                                                                                                 |
+| `scriptUrl`    | `string`                      | `"https://cloud.umami.is/script.js"` | Full URL of the Umami script to fetch and inline.                                                                 |
+| `fallbackPath` | `string`                      | —                                    | Path to a local `.js` file used if the fetch fails.                                                               |
+| `fetchTimeout` | `number`                      | `5000`                               | Milliseconds before the fetch is aborted.                                                                         |
+| `retries`      | `number`                      | `1`                                  | Number of retry attempts after the initial failure.                                                               |
+| `enabled`      | `boolean \| (env) => boolean` | `true`                               | Set to `false` or return `false` from a function to skip injection entirely. The function receives `process.env`. |
+| `verbose`      | `boolean`                     | `false`                              | Log fetch size and duration to the console during build.                                                          |
 
 ## Behavior on failure
 

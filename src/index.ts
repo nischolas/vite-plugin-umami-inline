@@ -2,9 +2,8 @@ import fs from "node:fs/promises";
 import type { Plugin } from "vite";
 
 export interface VitePluginUmamiOptions {
-  hostUrl: string;
+  scriptUrl?: string;
   websiteId: string;
-  scriptName?: string;
   fallbackPath?: string;
   fetchTimeout?: number;
   retries?: number;
@@ -30,9 +29,8 @@ async function fetchWithTimeout(
 
 export function vitePluginUmami(options: VitePluginUmamiOptions): Plugin {
   const {
-    hostUrl,
+    scriptUrl = "https://cloud.umami.is/script.js",
     websiteId,
-    scriptName = "script.js",
     fallbackPath,
     fetchTimeout = 5000,
     retries = 1,
@@ -40,9 +38,9 @@ export function vitePluginUmami(options: VitePluginUmamiOptions): Plugin {
     verbose = false,
   } = options;
 
-  if (!hostUrl || hostUrl.trim() === "") {
+  if (!scriptUrl || scriptUrl.trim() === "") {
     throw new Error(
-      "[vite-plugin-umami-inline] `hostUrl` is required and must not be empty.",
+      "[vite-plugin-umami-inline] `scriptUrl` must not be empty.",
     );
   }
   if (!websiteId || websiteId.trim() === "") {
@@ -50,6 +48,10 @@ export function vitePluginUmami(options: VitePluginUmamiOptions): Plugin {
       "[vite-plugin-umami-inline] `websiteId` is required and must not be empty.",
     );
   }
+
+  const parsedUrl = new URL(scriptUrl);
+  const hostUrl = parsedUrl.origin;
+  const scriptName = parsedUrl.pathname.split("/").filter(Boolean).pop() ?? "script.js";
 
   return {
     name: "vite-plugin-umami-inline",
@@ -63,13 +65,11 @@ export function vitePluginUmami(options: VitePluginUmamiOptions): Plugin {
 
       if (!isEnabled) return [];
 
-      if (!hostUrl.startsWith("https://")) {
+      if (!scriptUrl.startsWith("https://")) {
         this.warn(
-          "[vite-plugin-umami-inline] `hostUrl` does not use HTTPS — analytics may be blocked.",
+          "[vite-plugin-umami-inline] `scriptUrl` does not use HTTPS — analytics may be blocked.",
         );
       }
-
-      const scriptUrl = `${hostUrl}/${scriptName}`;
       let script: string | null = null;
 
       for (let attempt = 0; attempt <= retries; attempt++) {

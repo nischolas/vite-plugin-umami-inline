@@ -8,7 +8,7 @@ vi.mock("node:fs/promises", () => ({
 
 import fs from "node:fs/promises";
 
-const BASE = { hostUrl: "https://umami.example.com", websiteId: "abc-123" };
+const BASE = { scriptUrl: "https://umami.example.com/script.js", websiteId: "abc-123" };
 
 function invokeHook(plugin: Plugin, ctx = { warn: vi.fn() }) {
     const raw = plugin.transformIndexHtml;
@@ -34,12 +34,12 @@ afterEach(() => {
 });
 
 describe("validation", () => {
-    it("throws if hostUrl is empty", () => {
-        expect(() => vitePluginUmami({ ...BASE, hostUrl: "" })).toThrow("`hostUrl` is required");
+    it("throws if scriptUrl is empty", () => {
+        expect(() => vitePluginUmami({ ...BASE, scriptUrl: "" })).toThrow("`scriptUrl` must not be empty");
     });
 
-    it("throws if hostUrl is whitespace", () => {
-        expect(() => vitePluginUmami({ ...BASE, hostUrl: "   " })).toThrow("`hostUrl` is required");
+    it("throws if scriptUrl is whitespace", () => {
+        expect(() => vitePluginUmami({ ...BASE, scriptUrl: "   " })).toThrow("`scriptUrl` must not be empty");
     });
 
     it("throws if websiteId is empty", () => {
@@ -72,15 +72,15 @@ describe("enabled", () => {
 });
 
 describe("HTTPS warning", () => {
-    it("calls this.warn for http:// hostUrl", async () => {
+    it("calls this.warn for http:// scriptUrl", async () => {
         mockFetchOk("analytics();");
         const ctx = { warn: vi.fn() };
-        await invokeHook(vitePluginUmami({ ...BASE, hostUrl: "http://umami.example.com" }), ctx);
+        await invokeHook(vitePluginUmami({ ...BASE, scriptUrl: "http://umami.example.com/script.js" }), ctx);
         expect(ctx.warn).toHaveBeenCalledOnce();
         expect(ctx.warn).toHaveBeenCalledWith(expect.stringContaining("HTTPS"));
     });
 
-    it("does not call this.warn for https:// hostUrl", async () => {
+    it("does not call this.warn for https:// scriptUrl", async () => {
         mockFetchOk("analytics();");
         const ctx = { warn: vi.fn() };
         await invokeHook(vitePluginUmami({ ...BASE }), ctx);
@@ -97,15 +97,21 @@ describe("fetch success", () => {
         expect(tag.attrs).toMatchObject({
             defer: true,
             "data-website-id": BASE.websiteId,
-            "data-host-url": BASE.hostUrl,
+            "data-host-url": "https://umami.example.com",
         });
         expect(tag.children).toBe("umami();");
     });
 
-    it("uses custom scriptName in the fetch URL", async () => {
+    it("uses scriptUrl as the fetch URL", async () => {
         mockFetchOk("umami();");
-        await invokeHook(vitePluginUmami({ ...BASE, scriptName: "tracker.js" }));
+        await invokeHook(vitePluginUmami({ ...BASE, scriptUrl: "https://umami.example.com/tracker.js" }));
         expect(fetch).toHaveBeenCalledWith(expect.stringContaining("tracker.js"), expect.any(Object));
+    });
+
+    it("sets data-host-url to origin only, not the full scriptUrl", async () => {
+        mockFetchOk("umami();");
+        const [tag] = await invokeHook(vitePluginUmami({ ...BASE, scriptUrl: "https://umami.example.com/tracker.js" }));
+        expect(tag.attrs["data-host-url"]).toBe("https://umami.example.com");
     });
 
     it("verbose=true logs fetched size and duration", async () => {
