@@ -12,7 +12,10 @@ export interface VitePluginUmamiOptions {
   verbose?: boolean;
 }
 
-async function fetchWithTimeout(url: string, timeoutMs: number): Promise<Response> {
+async function fetchWithTimeout(
+  url: string,
+  timeoutMs: number,
+): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -38,14 +41,18 @@ export function vitePluginUmami(options: VitePluginUmamiOptions): Plugin {
   } = options;
 
   if (!hostUrl || hostUrl.trim() === "") {
-    throw new Error("[vite-plugin-umami] `hostUrl` is required and must not be empty.");
+    throw new Error(
+      "[vite-plugin-umami-inline] `hostUrl` is required and must not be empty.",
+    );
   }
   if (!websiteId || websiteId.trim() === "") {
-    throw new Error("[vite-plugin-umami] `websiteId` is required and must not be empty.");
+    throw new Error(
+      "[vite-plugin-umami-inline] `websiteId` is required and must not be empty.",
+    );
   }
 
   return {
-    name: "vite-plugin-umami",
+    name: "vite-plugin-umami-inline",
     apply: "build",
 
     async transformIndexHtml() {
@@ -57,7 +64,9 @@ export function vitePluginUmami(options: VitePluginUmamiOptions): Plugin {
       if (!isEnabled) return [];
 
       if (!hostUrl.startsWith("https://")) {
-        this.warn("[vite-plugin-umami] `hostUrl` does not use HTTPS — analytics may be blocked.");
+        this.warn(
+          "[vite-plugin-umami-inline] `hostUrl` does not use HTTPS — analytics may be blocked.",
+        );
       }
 
       const scriptUrl = `${hostUrl}/${scriptName}`;
@@ -71,13 +80,18 @@ export function vitePluginUmami(options: VitePluginUmamiOptions): Plugin {
           script = await res.text();
           if (verbose) {
             const ms = Date.now() - start;
-            console.log(`[vite-plugin-umami] fetched ${scriptName} (${Buffer.byteLength(script)} bytes) in ${ms}ms`);
+            console.log(
+              `[vite-plugin-umami-inline] fetched ${scriptName} (${Buffer.byteLength(script)} bytes) in ${ms}ms`,
+            );
           }
           break;
         } catch (e) {
           const isLast = attempt === retries;
           if (isLast) {
-            console.error(`[vite-plugin-umami] fetch failed after ${retries + 1} attempt(s):`, e);
+            console.error(
+              `[vite-plugin-umami-inline] fetch failed after ${retries + 1} attempt(s):`,
+              e,
+            );
           }
         }
       }
@@ -86,10 +100,15 @@ export function vitePluginUmami(options: VitePluginUmamiOptions): Plugin {
         try {
           script = await fs.readFile(fallbackPath, "utf-8");
           if (verbose) {
-            console.log(`[vite-plugin-umami] using fallback file: ${fallbackPath}`);
+            console.log(
+              `[vite-plugin-umami-inline] using fallback file: ${fallbackPath}`,
+            );
           }
         } catch (e) {
-          console.error(`[vite-plugin-umami] fallback file read failed (${fallbackPath}):`, e);
+          console.error(
+            `[vite-plugin-umami-inline] fallback file read failed (${fallbackPath}):`,
+            e,
+          );
         }
       }
 
