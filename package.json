@@ -1,0 +1,32 @@
+{
+  "name": "vite-plugin-umami-inline",
+  "version": "0.1.0",
+  "description": "Vite plugin that fetches and inlines the Umami analytics script at build time to bypass adblockers.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist"],
+  "keywords": ["vite", "vite-plugin", "umami", "analytics", "adblock"],
+  "license": "MIT",
+  "peerDependencies": {
+    "vite": ">=4"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "vite": "^7",
+    "tsup": "^8",
+    "typescript": "^5"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --watch"
+  }
+}
